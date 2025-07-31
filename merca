@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Estoque Mercadinho São Jorge</title>
+    <!-- Carrega o Tailwind CSS para estilização -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Define a fonte Inter para todo o corpo do documento */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Cor de fundo suave */
+        }
+        /* Estilos personalizados para a tabela */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+
+            margin-top: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 0.5rem;
+            overflow: hidden; /* Garante que as bordas arredondadas sejam aplicadas */
+        }
+        th, td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0; /* Linha divisória */
+        }
+        th {
+            background-color: #4f46e5; /* Cor de cabeçalho primária */
+            color: white;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.875rem;
+        }
+        tr:nth-child(even) {
+            background-color: #f8fafc; /* Linhas pares com fundo levemente diferente */
+        }
+        tr:hover {
+            background-color: #e0e7ff; /* Efeito hover nas linhas */
+        }
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .btn-primary {
+            background-color: #4f46e5;
+            color: white;
+            border: none;
+        }
+        .btn-primary:hover {
+            background-color: #4338ca;
+        }
+        .btn-danger {
+            background-color: #ef4444;
+            color: white;
+            border: none;
+        }
+        .btn-danger:hover {
+            background-color: #dc2626;
+        }
+        .btn-secondary {
+            background-color: #6b7280;
+            color: white;
+            border: none;
+        }
+        .btn-secondary:hover {
+            background-color: #4b5563;
+        }
+        .form-input {
+            padding: 0.625rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            width: 100%;
+            box-sizing: border-box; /* Garante que padding não aumente a largura */
+        }
+        .modal {
+            display: none; /* Esconde o modal por padrão */
+            position: fixed; /* Posição fixa na tela */
+            z-index: 1000; /* Acima de outros elementos */
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto; /* Habilita scroll se o conteúdo for muito grande */
+            background-color: rgba(0, 0, 0, 0.4); /* Fundo semi-transparente */
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fff;
+            margin: auto;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            max-width: 500px;
+            width: 90%;
+        }
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 1.75rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: #000;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="p-6">
+    <div class="max-w-7xl mx-auto bg-white p-8 rounded-lg shadow-xl">
+        <h1 class="text-4xl font-extrabold text-center text-indigo-700 mb-8">Controle de Estoque Mercadinho São Jorge</h1>
+
+        <!-- Formulário para Adicionar/Editar Produto -->
+        <div class="mb-8 p-6 bg-indigo-50 rounded-lg shadow-md">
+            <h2 class="text-2xl font-bold text-indigo-600 mb-4" id="form-title">Adicionar Novo Produto</h2>
+            <form id="product-form" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div>
+                    <label for="sku" class="block text-sm font-medium text-gray-700 mb-1">Código (SKU)</label>
+                    <input type="text" id="sku" class="form-input" placeholder="Ex: ALM-SEC-ARR-001" required>
+                </div>
+                <div>
+                    <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Nome do Produto</label>
+                    <input type="text" id="name" class="form-input" placeholder="Ex: Arroz Branco 5kg" required>
+                </div>
+                <div>
+                    <label for="category" class="block text-sm font-medium text-gray-700 mb-1">Categoria</label>
+                    <input type="text" id="category" class="form-input" placeholder="Ex: Alimentos Secos" required>
+                </div>
+                <div>
+                    <label for="subcategory" class="block text-sm font-medium text-gray-700 mb-1">Subcategoria</label>
+                    <input type="text" id="subcategory" class="form-input" placeholder="Ex: Grãos">
+                </div>
+                <div>
+                    <label for="unit" class="block text-sm font-medium text-gray-700 mb-1">Unidade</label>
+                    <input type="text" id="unit" class="form-input" placeholder="Ex: Kg, Unidade" required>
+                </div>
+                <div>
+                    <label for="quantity" class="block text-sm font-medium text-gray-700 mb-1">Quantidade</label>
+                    <input type="number" id="quantity" class="form-input" min="0" value="0" required>
+                </div>
+                <div>
+                    <label for="minStock" class="block text-sm font-medium text-gray-700 mb-1">Estoque Mínimo</label>
+                    <input type="number" id="minStock" class="form-input" min="0" value="0">
+                </div>
+                <div>
+                    <label for="maxStock" class="block text-sm font-medium text-gray-700 mb-1">Estoque Máximo</label>
+                    <input type="number" id="maxStock" class="form-input" min="0" value="0">
+                </div>
+                <div>
+                    <label for="supplier" class="block text-sm font-medium text-gray-700 mb-1">Fornecedor Principal</label>
+                    <input type="text" id="supplier" class="form-input" placeholder="Ex: Arrozeira Feliz">
+                </div>
+                <div>
+                    <label for="receiptDate" class="block text-sm font-medium text-gray-700 mb-1">Data de Recebimento</label>
+                    <input type="date" id="receiptDate" class="form-input">
+                </div>
+                <div>
+                    <label for="expiryDate" class="block text-sm font-medium text-gray-700 mb-1">Data de Validade</label>
+                    <input type="date" id="expiryDate" class="form-input">
+                </div>
+                <div>
+                    <label for="costPrice" class="block text-sm font-medium text-gray-700 mb-1">Preço de Custo (R$)</label>
+                    <input type="number" id="costPrice" class="form-input" step="0.01" min="0" value="0.00">
+                </div>
+                <div>
+                    <label for="salePrice" class="block text-sm font-medium text-gray-700 mb-1">Preço de Venda (R$)</label>
+                    <input type="number" id="salePrice" class="form-input" step="0.01" min="0" value="0.00">
+                </div>
+                <div class="md:col-span-2 lg:col-span-3 flex justify-end space-x-4 mt-4">
+                    <button type="submit" class="btn btn-primary" id="submit-button">Adicionar Produto</button>
+                    <button type="button" class="btn btn-secondary" id="cancel-edit" style="display: none;">Cancelar Edição</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Tabela de Produtos -->
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead>
+                    <tr>
+                        <th>SKU</th>
+                        <th>Produto</th>
+                        <th>Categoria</th>
+                        <th>Subcategoria</th>
+                        <th>Unidade</th>
+                        <th>Qtd.</th>
+                        <th>Est. Mín.</th>
+                        <th>Est. Máx.</th>
+                        <th>Fornecedor</th>
+                        <th>Recebimento</th>
+                        <th>Validade</th>
+                        <th>Custo</th>
+                        <th>Venda</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="product-list" class="bg-white divide-y divide-gray-200">
+                    <!-- Produtos serão inseridos aqui pelo JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Modal de Confirmação -->
+        <div id="confirm-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-button">&times;</span>
+                <h3 class="text-xl font-bold mb-4">Confirmar Exclusão</h3>
+                <p class="mb-6">Tem certeza que deseja excluir este produto?</p>
+                <div class="flex justify-end space-x-4">
+                    <button id="cancel-delete" class="btn btn-secondary">Cancelar</button>
+                    <button id="confirm-delete" class="btn btn-danger">Excluir</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Array para armazenar os produtos
+        let products = [];
+        // Variável para armazenar o SKU do produto que está sendo editado
+        let editingSku = null;
+
+        // Referências aos elementos do DOM
+        const productForm = document.getElementById('product-form');
+        const productList = document.getElementById('product-list');
+        const formTitle = document.getElementById('form-title');
+        const submitButton = document.getElementById('submit-button');
+        const cancelEditButton = document.getElementById('cancel-edit');
+        const confirmModal = document.getElementById('confirm-modal');
+        const confirmDeleteButton = document.getElementById('confirm-delete');
+        const cancelDeleteButton = document.getElementById('cancel-delete');
+        const closeModalButton = document.querySelector('.close-button');
+
+        // Função para formatar a data para exibição
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('pt-BR');
+        }
+
+        // Função para formatar valores monetários
+        function formatCurrency(value) {
+            return parseFloat(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+        // Função para renderizar a lista de produtos na tabela
+        function renderProducts() {
+            productList.innerHTML = ''; // Limpa a lista existente
+            products.forEach(product => {
+                const row = document.createElement('tr');
+                // Adiciona uma classe para produtos com estoque baixo ou vencidos
+                if (product.quantity <= product.minStock) {
+                    row.classList.add('bg-red-100'); // Fundo vermelho claro para estoque baixo
+                }
+                if (product.expiryDate && new Date(product.expiryDate) < new Date()) {
+                    row.classList.add('bg-yellow-100'); // Fundo amarelo claro para produtos vencidos
+                }
+
+                row.innerHTML = `
+                    <td class="whitespace-nowrap">${product.sku}</td>
+                    <td class="whitespace-nowrap">${product.name}</td>
+                    <td>${product.category}</td>
+                    <td>${product.subcategory}</td>
+                    <td>${product.unit}</td>
+                    <td>${product.quantity}</td>
+                    <td>${product.minStock}</td>
+                    <td>${product.maxStock}</td>
+                    <td>${product.supplier}</td>
+                    <td>${formatDate(product.receiptDate)}</td>
+                    <td>${formatDate(product.expiryDate)}</td>
+                    <td>${formatCurrency(product.costPrice)}</td>
+                    <td>${formatCurrency(product.salePrice)}</td>
+                    <td class="whitespace-nowrap">
+                        <button class="btn btn-primary text-sm px-3 py-1 mr-2" onclick="editProduct('${product.sku}')">Editar</button>
+                        <button class="btn btn-danger text-sm px-3 py-1" onclick="showConfirmModal('${product.sku}')">Excluir</button>
+                    </td>
+                `;
+                productList.appendChild(row);
+            });
+        }
+
+        // Função para adicionar ou atualizar um produto
+        productForm.addEventListener('submit', (e) => {
+            e.preventDefault(); // Previne o comportamento padrão de envio do formulário
+
+            // Coleta os dados do formulário
+            const newProduct = {
+                sku: document.getElementById('sku').value.trim(),
+                name: document.getElementById('name').value.trim(),
+                category: document.getElementById('category').value.trim(),
+                subcategory: document.getElementById('subcategory').value.trim(),
+                unit: document.getElementById('unit').value.trim(),
+                quantity: parseInt(document.getElementById('quantity').value),
+                minStock: parseInt(document.getElementById('minStock').value),
+                maxStock: parseInt(document.getElementById('maxStock').value),
+                supplier: document.getElementById('supplier').value.trim(),
+                receiptDate: document.getElementById('receiptDate').value,
+                expiryDate: document.getElementById('expiryDate').value,
+                costPrice: parseFloat(document.getElementById('costPrice').value),
+                salePrice: parseFloat(document.getElementById('salePrice').value)
+            };
+
+            if (editingSku) {
+                // Modo de edição: encontra o produto e o atualiza
+                const index = products.findIndex(p => p.sku === editingSku);
+                if (index !== -1) {
+                    products[index] = { ...products[index], ...newProduct }; // Mescla os dados
+                }
+                editingSku = null; // Reseta o modo de edição
+                formTitle.textContent = 'Adicionar Novo Produto';
+                submitButton.textContent = 'Adicionar Produto';
+                cancelEditButton.style.display = 'none';
+                document.getElementById('sku').readOnly = false; // Habilita edição do SKU novamente
+            } else {
+                // Modo de adição: verifica se o SKU já existe
+                if (products.some(p => p.sku === newProduct.sku)) {
+                    alert('Erro: SKU já existe. Por favor, use um SKU único.');
+                    return;
+                }
+                products.push(newProduct); // Adiciona o novo produto
+            }
+
+            productForm.reset(); // Limpa o formulário
+            renderProducts(); // Atualiza a tabela
+        });
+
+        // Função para preencher o formulário para edição
+        function editProduct(sku) {
+            const product = products.find(p => p.sku === sku);
+            if (product) {
+                document.getElementById('sku').value = product.sku;
+                document.getElementById('sku').readOnly = true; // Impede a edição do SKU durante a edição
+                document.getElementById('name').value = product.name;
+                document.getElementById('category').value = product.category;
+                document.getElementById('subcategory').value = product.subcategory;
+                document.getElementById('unit').value = product.unit;
+                document.getElementById('quantity').value = product.quantity;
+                document.getElementById('minStock').value = product.minStock;
+                document.getElementById('maxStock').value = product.maxStock;
+                document.getElementById('supplier').value = product.supplier;
+                document.getElementById('receiptDate').value = product.receiptDate;
+                document.getElementById('expiryDate').value = product.expiryDate;
+                document.getElementById('costPrice').value = product.costPrice;
+                document.getElementById('salePrice').value = product.salePrice;
+
+                formTitle.textContent = 'Editar Produto';
+                submitButton.textContent = 'Salvar Alterações';
+                cancelEditButton.style.display = 'inline-block';
+                editingSku = sku; // Define o SKU que está sendo editado
+            }
+        }
+
+        // Função para cancelar a edição
+        cancelEditButton.addEventListener('click', () => {
+            productForm.reset();
+            formTitle.textContent = 'Adicionar Novo Produto';
+            submitButton.textContent = 'Adicionar Produto';
+            cancelEditButton.style.display = 'none';
+            document.getElementById('sku').readOnly = false;
+            editingSku = null;
+        });
+
+        // Variável para armazenar o SKU a ser excluído
+        let skuToDelete = null;
+
+        // Função para exibir o modal de confirmação
+        function showConfirmModal(sku) {
+            skuToDelete = sku;
+            confirmModal.style.display = 'flex'; // Exibe o modal
+        }
+
+        // Função para fechar o modal
+        function closeConfirmModal() {
+            confirmModal.style.display = 'none';
+            skuToDelete = null;
+        }
+
+        // Event listener para o botão de confirmar exclusão no modal
+        confirmDeleteButton.addEventListener('click', () => {
+            if (skuToDelete) {
+                products = products.filter(p => p.sku !== skuToDelete); // Remove o produto
+                renderProducts(); // Atualiza a tabela
+            }
+            closeConfirmModal();
+        });
+
+        // Event listener para o botão de cancelar exclusão no modal
+        cancelDeleteButton.addEventListener('click', closeConfirmModal);
+
+        // Event listener para o botão de fechar o modal
+        closeModalButton.addEventListener('click', closeConfirmModal);
+
+        // Fecha o modal se o usuário clicar fora do conteúdo do modal
+        window.addEventListener('click', (event) => {
+            if (event.target === confirmModal) {
+                closeConfirmModal();
+            }
+        });
+
+        // Renderiza a lista de produtos inicial (vazia)
+        renderProducts();
+    </script>
+</body>
+</html> 
+
